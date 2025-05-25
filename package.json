@@ -6,14 +6,20 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "build:init-db": "tsc src/lib/init-db.ts --outDir dist/init-db",
+    "run:init-db": "node dist/init-db/init-db.js",
+    "init-db": "ts-node src/lib/init-db.ts"
   },
   "dependencies": {
     "@headlessui/react": "^2.2.2",
     "@heroicons/react": "^2.2.0",
     "@hookform/resolvers": "^5.0.1",
     "@reduxjs/toolkit": "^2.8.1",
+    "@types/bcryptjs": "^2.4.6",
     "axios": "^1.9.0",
+    "bcryptjs": "^3.0.2",
+    "mongodb": "^6.16.0",
     "next": "15.3.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
@@ -32,6 +38,7 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "autoprefixer": "^10.4.16",
+    "dotenv": "^16.5.0",
     "eslint": "^9",
     "eslint-config-next": "15.3.1",
     "postcss": "^8.4.31",
@@ -39,6 +46,7 @@
     "postcss-nesting": "^13.0.1",
     "sass": "^1.71.1",
     "tailwindcss": "^3.4.1",
+    "ts-node": "^10.9.2",
     "typescript": "^5"
   }
 }

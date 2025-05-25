@@ -1,6 +1,7 @@
 'use client';
 
 import { createContext, useContext, useEffect, useState } from 'react';
+import { AuthProvider } from '@/context/AuthContext';
 
 type Theme = 'light' | 'dark';
 
@@ -40,6 +41,10 @@ export function useTheme() {
 
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
-    <ThemeProvider>{children}</ThemeProvider>
+    <AuthProvider>
+      <ThemeProvider>
+        {children}
+      </ThemeProvider>
+    </AuthProvider>
   );
 } 

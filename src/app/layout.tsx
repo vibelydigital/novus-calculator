@@ -1,16 +1,10 @@
 import type { Metadata } from "next";
-import { Inter } from 'next/font/google';
-import "./globals.scss";
-
-const inter = Inter({ 
-  subsets: ['latin'],
-  display: 'swap',
-  variable: '--font-inter'
-});
+import "@/styles/globals.scss";
+import { Providers } from '@/app/providers';
 
 export const metadata: Metadata = {
-  title: "Novus Calculator",
-  description: "A modern calculator application",
+  title: "Login - Novus Calculator",
+  description: "Login to Novus Calculator",
 };
 
 export default function RootLayout({
@@ -19,9 +13,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={inter.variable}>
-      <body>
-        {children}
+    <html lang="en" suppressHydrationWarning>
+      <body suppressHydrationWarning className="antialiased">
+        <Providers>
+          {children}
+        </Providers>
       </body>
     </html>
   );

@@ -1,5 +1,5 @@
 {
-  "name": "novus-calculator",
+  "name": "novasadmin",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -9,24 +9,36 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "mongoose": "^8.15.0",
-    "next": "15.3.2",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "@headlessui/react": "^2.2.2",
+    "@heroicons/react": "^2.2.0",
+    "@hookform/resolvers": "^5.0.1",
+    "@reduxjs/toolkit": "^2.8.1",
+    "axios": "^1.9.0",
+    "next": "15.3.1",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-dropzone": "^14.3.8",
+    "react-hook-form": "^7.56.3",
+    "react-hot-toast": "^2.5.2",
+    "react-redux": "^9.2.0",
+    "sonner": "^2.0.3",
+    "zod": "^3.24.4"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
-    "@tailwindcss/postcss": "^4",
+    "@tailwindcss/nesting": "^0.0.0-insiders.565cd3e",
+    "@tailwindcss/postcss": "^4.1.5",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "autoprefixer": "^10.4.21",
+    "autoprefixer": "^10.4.16",
     "eslint": "^9",
-    "eslint-config-next": "15.3.2",
-    "postcss": "^8.5.3",
-    "sass": "^1.89.0",
-    "scss": "^0.2.4",
-    "tailwindcss": "^4.1.7",
+    "eslint-config-next": "15.3.1",
+    "postcss": "^8.4.31",
+    "postcss-import": "^16.1.0",
+    "postcss-nesting": "^13.0.1",
+    "sass": "^1.71.1",
+    "tailwindcss": "^3.4.1",
     "typescript": "^5"
   }
 }

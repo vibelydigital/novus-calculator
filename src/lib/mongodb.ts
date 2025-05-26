@@ -1,28 +1,37 @@
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-require('dotenv').config({ path: '.env.local' });
-console.log('MONGODB_URI:', process.env.MONGODB_URI);
-import { MongoClient } from 'mongodb';
+import 'dotenv/config';
+import mongoose from 'mongoose';
 
 if (!process.env.MONGODB_URI) {
   throw new Error('Invalid/Missing environment variable: "MONGODB_URI"');
 }
 
 const uri = process.env.MONGODB_URI;
-const options = {
-  ssl: true,
-  tls: true,
-  tlsAllowInvalidCertificates: true,
-  tlsAllowInvalidHostnames: true,
-  maxPoolSize: 10,
-  minPoolSize: 5,
-  maxIdleTimeMS: 60000,
-  connectTimeoutMS: 10000,
-  socketTimeoutMS: 45000,
-};
 
-const client = new MongoClient(uri, options);
-const clientPromise = client.connect();
+let isConnected = false;
 
-// Export a module-scoped MongoClient promise. By doing this in a
-// separate module, the client can be shared across functions.
-export default clientPromise; 
+async function connectDB() {
+  if (isConnected) {
+    return;
+  }
+
+  try {
+    await mongoose.connect(uri, {
+      ssl: true,
+      tls: true,
+      tlsAllowInvalidCertificates: true,
+      serverSelectionTimeoutMS: 5000,
+      connectTimeoutMS: 10000,
+      retryWrites: true,
+      w: 'majority',
+      useNewUrlParser: true,
+      useUnifiedTopology: true
+    });
+    isConnected = true;
+    console.log('MongoDB connected successfully');
+  } catch (error) {
+    console.error('MongoDB connection error:', error);
+    throw error;
+  }
+}
+
+export default connectDB; 

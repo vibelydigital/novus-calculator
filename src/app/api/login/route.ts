@@ -1,23 +1,16 @@
 import { NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
-
-// Mock user data - replace with actual database in production
-const MOCK_USERS = [
-  { id: '1', email: 'admin@example.com', password: 'admin123', role: 'admin' },
-  { id: '2', email: 'user@example.com', password: 'user123', role: 'user' }
-];
 
 export async function POST(request: Request) {
   try {
     const body = await request.json();
     const { email, password } = body;
 
-    // Check if it's an admin login
-    if (email === 'admin' && password === 'demopass') {
+    // Check if it's an admin login using environment variables
+    if (email === process.env.ADMIN_USERNAME && password === process.env.ADMIN_PASSWORD) {
       // Create the response
       const response = NextResponse.json({
         id: '1',
-        email: 'admin',
+        email: process.env.ADMIN_USERNAME,
         role: 'admin'
       });
 

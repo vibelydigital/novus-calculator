@@ -2,15 +2,17 @@ import { NextResponse } from 'next/server';
 
 export async function POST() {
   try {
-    // In a real application, you would:
-    // 1. Clear the session token from cookies
-    // 2. Invalidate the session in the database
-    // 3. Perform any other cleanup
+    // Create response
+    const response = NextResponse.json({ success: true });
 
-    return NextResponse.json({ success: true });
+    // Clear the auth token cookie
+    response.cookies.delete('auth-token');
+
+    return response;
   } catch (error) {
+    console.error('Logout error:', error);
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'Logout failed' },
       { status: 500 }
     );
   }

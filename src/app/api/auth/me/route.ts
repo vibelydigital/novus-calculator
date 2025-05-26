@@ -9,16 +9,17 @@ const MOCK_USERS = [
 export async function GET(request: Request) {
   try {
     // In a real application, you would:
-    // 1. Get the session token from cookies
-    // 2. Verify the token
-    // 3. Get the user from the database
-    // 4. Return the user data
+    // 1. Verify session token
+    // 2. Fetch user data from database
+    // 3. Check user permissions
 
-    // For now, we'll just return the first user as a mock
-    const user = MOCK_USERS[0];
-    const { password: _, ...userWithoutPassword } = user;
-
-    return NextResponse.json(userWithoutPassword);
+    // For now, we'll just return a mock user
+    // This will be replaced with actual session checking
+    return NextResponse.json({
+      id: '1',
+      email: process.env.ADMIN_USERNAME,
+      role: 'admin'
+    });
   } catch (error) {
     console.error('Auth check error:', error);
     return NextResponse.json(

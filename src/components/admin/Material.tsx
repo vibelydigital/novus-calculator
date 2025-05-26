@@ -19,8 +19,14 @@ export default function Material() {
     const name = formData.get('material-name') as string;
     const price = parseFloat(formData.get('material-price') as string);
 
-    // TODO: Implement material creation logic
-    console.log('Add material:', { name, price });
+    const newMaterial: Material = {
+      id: Date.now().toString(),
+      name,
+      price
+    };
+
+    setMaterials([...materials, newMaterial]);
+    e.currentTarget.reset();
   };
 
   const handleEditMaterial = (materialId: string) => {
@@ -29,8 +35,7 @@ export default function Material() {
   };
 
   const handleDeleteMaterial = (materialId: string) => {
-    // TODO: Implement material deletion logic
-    console.log('Delete material:', materialId);
+    setMaterials(materials.filter(material => material.id !== materialId));
   };
 
   return (
@@ -76,40 +81,52 @@ export default function Material() {
             Add Material
           </button>
         </form>
+
         <div>
-          <h3 className="text-md font-medium mb-2">Existing Materials</h3>
-          <div className="space-y-2 max-h-60 overflow-y-auto">
-            {materials.map((material) => (
-              <div key={material.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-md">
-                <div className="flex-grow">
-                  <span className="font-medium">{material.name}</span>
-                  <span className="text-sm text-gray-600 ml-2">(€{material.price.toFixed(2)})</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <button
-                    onClick={() => handleEditMaterial(material.id)}
-                    className="inline-flex items-center justify-center text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground rounded-md h-8 w-8 p-0"
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
-                      <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"></path>
-                      <path d="m15 5 4 4"></path>
-                    </svg>
-                  </button>
-                  <button
-                    onClick={() => handleDeleteMaterial(material.id)}
-                    className="inline-flex items-center justify-center text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-destructive text-destructive-foreground hover:bg-destructive/90 rounded-md h-8 w-8 p-0"
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
-                      <path d="M3 6h18"></path>
-                      <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
-                      <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
-                      <line x1="10" x2="10" y1="11" y2="17"></line>
-                      <line x1="14" x2="14" y1="11" y2="17"></line>
-                    </svg>
-                  </button>
-                </div>
-              </div>
-            ))}
+          <h3 className="text-md font-medium mb-4">Existing Materials</h3>
+          <div className="rounded-md border">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b bg-muted/50">
+                  <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Material Name</th>
+                  <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Price (€)</th>
+                  <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {materials.map((material) => (
+                  <tr key={material.id} className="border-b">
+                    <td className="p-4 align-middle">{material.name}</td>
+                    <td className="p-4 align-middle">€{material.price.toFixed(2)}</td>
+                    <td className="p-4 align-middle">
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => handleEditMaterial(material.id)}
+                          className="inline-flex items-center justify-center text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground rounded-md h-8 w-8 p-0"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
+                            <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"></path>
+                            <path d="m15 5 4 4"></path>
+                          </svg>
+                        </button>
+                        <button
+                          onClick={() => handleDeleteMaterial(material.id)}
+                          className="inline-flex items-center justify-center text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-destructive text-destructive-foreground hover:bg-destructive/90 rounded-md h-8 w-8 p-0"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
+                            <path d="M3 6h18"></path>
+                            <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
+                            <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
+                            <line x1="10" x2="10" y1="11" y2="17"></line>
+                            <line x1="14" x2="14" y1="11" y2="17"></line>
+                          </svg>
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
       </div>

@@ -19,7 +19,7 @@ export default function LoginPage() {
 
     try {
       await login(email, password);
-      router.push('/dashboard'); // Redirect to dashboard after successful login
+      router.push('/calculator'); // Redirect to calculator after successful login
     } catch (err) {
       setError('Invalid email or password');
     } finally {

@@ -6,6 +6,7 @@ import { toast } from 'sonner';
 interface User {
   _id: string;
   username: string;
+  password: string;
   role: string;
   createdAt: string;
 }
@@ -104,13 +105,12 @@ export default function UserManagement() {
             title="Username can only contain letters, numbers, and underscores"
           />
           <input
-            type="password"
+            type="text"
             placeholder="Password"
             value={newUser.password}
             onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
             className="border rounded p-2"
             required
-            minLength={6}
           />
         </div>
         <button
@@ -127,6 +127,7 @@ export default function UserManagement() {
           <thead>
             <tr className="bg-gray-50">
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Username</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Password</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created At</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
@@ -136,6 +137,7 @@ export default function UserManagement() {
             {users.map((user) => (
               <tr key={user._id}>
                 <td className="px-6 py-4 whitespace-nowrap">{user.username}</td>
+                <td className="px-6 py-4 whitespace-nowrap">{user.password}</td>
                 <td className="px-6 py-4 whitespace-nowrap">{user.role}</td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   {new Date(user.createdAt).toLocaleDateString()}

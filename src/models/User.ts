@@ -1,5 +1,17 @@
 import mongoose from 'mongoose';
 
+// Drop any existing indexes first
+mongoose.connection.on('connected', async () => {
+  if (mongoose.connection.db) {
+    try {
+      await mongoose.connection.db.collection('users').dropIndexes();
+      console.log('Dropped all indexes from users collection');
+    } catch (error) {
+      console.log('No indexes to drop or error dropping indexes:', error);
+    }
+  }
+});
+
 const userSchema = new mongoose.Schema({
   username: {
     type: String,
@@ -16,7 +28,7 @@ const userSchema = new mongoose.Schema({
   },
   role: {
     type: String,
-    enum: ['user'],
+    enum: ['user', 'admin'],
     default: 'user'
   },
   createdAt: {
@@ -40,4 +52,10 @@ if (mongoose.models.User) {
   delete mongoose.models.User;
 }
 
-export default mongoose.model('User', userSchema); 
+// Create the model with explicit index on username
+const User = mongoose.model('User', userSchema);
+
+// Ensure username index is created
+User.createIndexes().catch(console.error);
+
+export default User; 

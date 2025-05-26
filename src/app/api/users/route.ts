@@ -1,13 +1,15 @@
 import { NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import User from '@/models/User';
-import bcrypt from 'bcryptjs';
 
 // GET all users
 export async function GET() {
   try {
+    console.log('Connecting to database...');
     await connectDB();
-    const users = await User.find({}, { password: 0 }).sort({ createdAt: -1 });
+    console.log('Fetching users...');
+    const users = await User.find().sort({ createdAt: -1 });
+    console.log(`Found ${users.length} users`);
     return NextResponse.json(users);
   } catch (error) {
     console.error('Error fetching users:', error);
@@ -21,14 +23,22 @@ export async function GET() {
 // POST new user
 export async function POST(request: Request) {
   try {
+    console.log('Connecting to database...');
     await connectDB();
+    
     const body = await request.json();
     const { username, password } = body;
     
-    console.log('Received user creation request:', { username });
+    console.log('Received user creation request:', { 
+      username,
+      password
+    });
     
     if (!username || !password) {
-      console.log('Missing required fields:', { username: !!username, password: !!password });
+      console.log('Missing required fields:', { 
+        username: !!username, 
+        password: !!password 
+      });
       return NextResponse.json(
         { error: 'Username and password are required' },
         { status: 400 }
@@ -36,6 +46,7 @@ export async function POST(request: Request) {
     }
 
     // Check if user already exists
+    console.log('Checking for existing user...');
     const existingUser = await User.findOne({ username });
     if (existingUser) {
       console.log('Username already exists:', username);
@@ -44,29 +55,22 @@ export async function POST(request: Request) {
         { status: 400 }
       );
     }
-
-    // Hash password
-    const hashedPassword = await bcrypt.hash(password, 10);
     
     // Create new user
+    console.log('Creating new user...');
     const user = await User.create({
       username,
-      password: hashedPassword,
+      password,
       role: 'user'
     });
 
-    console.log('User created successfully:', { userId: user._id, username: user.username });
-
-    // Remove password from response
-    const userWithoutPassword = {
-      _id: user._id,
+    console.log('User created successfully:', { 
+      userId: user._id, 
       username: user.username,
-      role: user.role,
-      createdAt: user.createdAt,
-      updatedAt: user.updatedAt
-    };
+      role: user.role
+    });
 
-    return NextResponse.json(userWithoutPassword, { status: 201 });
+    return NextResponse.json(user, { status: 201 });
   } catch (error) {
     console.error('Detailed error creating user:', error);
     return NextResponse.json(

@@ -3,6 +3,8 @@
 import { useState } from 'react';
 import { CalculatorFormData } from './CalculatorForm';
 import CalculatorActions from './CalculatorActions';
+import * as Accordion from '@radix-ui/react-accordion';
+import { ChevronDownIcon } from '@radix-ui/react-icons';
 
 interface SavedCalculation {
   id: string;
@@ -55,7 +57,6 @@ export default function CalculationResults({ formData, totalPrice }: Calculation
     setSavedCalculations(prev => [...prev, newCalculation]);
     localStorage.setItem('savedCalculations', JSON.stringify([...savedCalculations, newCalculation]));
     setCalculationName('');
-    alert('Calculation saved successfully!');
   };
 
   const handleDelete = (id: string) => {
@@ -65,109 +66,115 @@ export default function CalculationResults({ formData, totalPrice }: Calculation
   };
 
   return (
-    <div className="space-y-8">
-      <div className="rounded-lg border bg-card text-card-foreground shadow-sm">
-        <div className="flex flex-col space-y-1.5 p-4 md:p-6">
-          <h3 className="font-semibold tracking-tight text-lg md:text-xl">Calculation Results</h3>
-        </div>
-        <div className="p-4 md:p-6">
-          <div className="space-y-4">
-            {/* Area */}
-            <div className="flex justify-between items-center">
-              <span className="text-sm md:text-base text-gray-600">Area:</span>
-              <span className="text-sm md:text-base font-medium">{calculateArea().toFixed(2)} m²</span>
-            </div>
+    <div className="space-y-4">
+      <Accordion.Root type="multiple" defaultValue={['results', 'saved']} className="w-full">
+        <Accordion.Item value="results" className="border rounded-lg">
+          <Accordion.Trigger className="flex w-full items-center justify-between p-4 font-semibold">
+            <span>Calculation Results</span>
+            <ChevronDownIcon className="h-4 w-4 shrink-0 transition-transform duration-200" />
+          </Accordion.Trigger>
+          <Accordion.Content className="p-4 pt-0">
+            <div className="space-y-4">
+              {/* Area */}
+              <div className="flex justify-between items-center">
+                <span className="text-sm md:text-base text-gray-600">Area:</span>
+                <span className="text-sm md:text-base font-medium">{calculateArea().toFixed(2)} m²</span>
+              </div>
 
-            {/* Material Cost */}
-            <div className="flex justify-between items-center">
-              <span className="text-sm md:text-base text-gray-600">Material Cost:</span>
-              <span className="text-sm md:text-base font-medium">{formatPrice(totalPrice * 0.4)}</span>
-            </div>
+              {/* Material Cost */}
+              <div className="flex justify-between items-center">
+                <span className="text-sm md:text-base text-gray-600">Material Cost:</span>
+                <span className="text-sm md:text-base font-medium">{formatPrice(totalPrice * 0.4)}</span>
+              </div>
 
-            {/* Print Cost */}
-            <div className="flex justify-between items-center">
-              <span className="text-sm md:text-base text-gray-600">Print Cost:</span>
-              <span className="text-sm md:text-base font-medium">{formatPrice(totalPrice * 0.2)}</span>
-            </div>
+              {/* Print Cost */}
+              <div className="flex justify-between items-center">
+                <span className="text-sm md:text-base text-gray-600">Print Cost:</span>
+                <span className="text-sm md:text-base font-medium">{formatPrice(totalPrice * 0.2)}</span>
+              </div>
 
-            {/* Lamination Cost */}
-            <div className="flex justify-between items-center">
-              <span className="text-sm md:text-base text-gray-600">Lamination Cost:</span>
-              <span className="text-sm md:text-base font-medium">{formatPrice(totalPrice * 0.15)}</span>
-            </div>
+              {/* Lamination Cost */}
+              <div className="flex justify-between items-center">
+                <span className="text-sm md:text-base text-gray-600">Lamination Cost:</span>
+                <span className="text-sm md:text-base font-medium">{formatPrice(totalPrice * 0.15)}</span>
+              </div>
 
-            {/* Finishing Cost */}
-            <div className="flex justify-between items-center">
-              <span className="text-sm md:text-base text-gray-600">Finishing Cost:</span>
-              <span className="text-sm md:text-base font-medium">{formatPrice(totalPrice * 0.15)}</span>
-            </div>
+              {/* Finishing Cost */}
+              <div className="flex justify-between items-center">
+                <span className="text-sm md:text-base text-gray-600">Finishing Cost:</span>
+                <span className="text-sm md:text-base font-medium">{formatPrice(totalPrice * 0.15)}</span>
+              </div>
 
-            {/* Quantity */}
-            <div className="flex justify-between items-center">
-              <span className="text-sm md:text-base text-gray-600">Quantity:</span>
-              <span className="text-sm md:text-base font-medium">{formData.quantity}</span>
-            </div>
+              {/* Quantity */}
+              <div className="flex justify-between items-center">
+                <span className="text-sm md:text-base text-gray-600">Quantity:</span>
+                <span className="text-sm md:text-base font-medium">{formData.quantity}</span>
+              </div>
 
-            {/* Total Price */}
-            <div className="flex justify-between items-center pt-4 border-t">
-              <span className="text-base md:text-lg font-semibold">Total Price:</span>
-              <span className="text-base md:text-lg font-bold text-blue-600">{formatPrice(totalPrice)}</span>
-            </div>
+              {/* Total Price */}
+              <div className="flex justify-between items-center pt-4 border-t">
+                <span className="text-base md:text-lg font-semibold">Total Price:</span>
+                <span className="text-base md:text-lg font-bold text-blue-600">{formatPrice(totalPrice)}</span>
+              </div>
 
-            {/* Save Calculation */}
-            <div className="pt-4 border-t">
-              <div className="flex gap-2 mb-4">
-                <input
-                  type="text"
-                  value={calculationName}
-                  onChange={(e) => setCalculationName(e.target.value)}
-                  placeholder="Enter calculation name"
-                  className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              {/* Save Calculation */}
+              <div className="pt-4 border-t">
+                <div className="flex gap-2 mb-4">
+                  <input
+                    type="text"
+                    value={calculationName}
+                    onChange={(e) => setCalculationName(e.target.value)}
+                    placeholder="Enter calculation name"
+                    className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  />
+                </div>
+                <CalculatorActions 
+                  formData={formData} 
+                  totalPrice={totalPrice} 
+                  onSave={handleSave}
                 />
               </div>
-              <CalculatorActions 
-                formData={formData} 
-                totalPrice={totalPrice} 
-                onSave={handleSave}
-              />
             </div>
-          </div>
-        </div>
-      </div>
+          </Accordion.Content>
+        </Accordion.Item>
 
-      {/* Saved Calculations */}
-      {savedCalculations.length > 0 && (
-        <div className="rounded-lg border bg-card text-card-foreground shadow-sm">
-          <div className="flex flex-col space-y-1.5 p-4 md:p-6">
-            <h3 className="font-semibold tracking-tight text-lg md:text-xl">Saved Calculations</h3>
-          </div>
-          <div className="p-4 md:p-6">
-            <div className="space-y-4">
-              {savedCalculations.map(calc => (
-                <div key={calc.id} className="flex justify-between items-center p-3 rounded-lg border">
-                  <div>
-                    <h4 className="font-medium">{calc.name}</h4>
-                    <p className="text-sm text-gray-500">
-                      {new Date(calc.timestamp).toLocaleDateString()}
-                    </p>
+        {/* Saved Calculations */}
+        <Accordion.Item value="saved" className="border rounded-lg">
+          <Accordion.Trigger className="flex w-full items-center justify-between p-4 font-semibold">
+            <span>Saved Calculations ({savedCalculations.length})</span>
+            <ChevronDownIcon className="h-4 w-4 shrink-0 transition-transform duration-200" />
+          </Accordion.Trigger>
+          <Accordion.Content className="p-4 pt-0">
+            {savedCalculations.length > 0 ? (
+              <div className="space-y-4">
+                {savedCalculations.map(calc => (
+                  <div key={calc.id} className="flex justify-between items-center p-3 rounded-lg border">
+                    <div>
+                      <h4 className="font-medium">{calc.name}</h4>
+                      <p className="text-sm text-gray-500">
+                        {new Date(calc.timestamp).toLocaleDateString()}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-4">
+                      <span className="font-semibold">
+                        {formatPrice(calc.totalPrice)}
+                      </span>
+                      <button
+                        onClick={() => handleDelete(calc.id)}
+                        className="text-red-500 hover:text-red-700"
+                      >
+                        Delete
+                      </button>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-4">
-                    <span className="font-semibold">
-                      {formatPrice(calc.totalPrice)}
-                    </span>
-                    <button
-                      onClick={() => handleDelete(calc.id)}
-                      className="text-red-500 hover:text-red-700"
-                    >
-                      Delete
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
+                ))}
+              </div>
+            ) : (
+              <p className="text-gray-500 text-center py-4">No saved calculations yet</p>
+            )}
+          </Accordion.Content>
+        </Accordion.Item>
+      </Accordion.Root>
     </div>
   );
 } 

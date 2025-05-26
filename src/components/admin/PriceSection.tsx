@@ -1,11 +1,14 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { toast } from 'sonner';
 
-interface Item {
-  id: string;
+interface PriceItem {
+  _id: string;
   name: string;
   price: number;
+  type: string;
+  createdAt: string;
 }
 
 interface PriceSectionProps {
@@ -14,124 +17,145 @@ interface PriceSectionProps {
 }
 
 export default function PriceSection({ title, itemName }: PriceSectionProps) {
-  const [items, setItems] = useState<Item[]>([]);
+  const [items, setItems] = useState<PriceItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [newItem, setNewItem] = useState({
+    name: '',
+    price: ''
+  });
 
-  const handleAddItem = (e: React.FormEvent<HTMLFormElement>) => {
+  // Fetch items from database
+  const fetchItems = async () => {
+    try {
+      const response = await fetch(`/api/price-items?type=${itemName}`);
+      if (!response.ok) throw new Error('Failed to fetch items');
+      const data = await response.json();
+      setItems(data);
+    } catch (error) {
+      toast.error('Failed to load items');
+      console.error('Error fetching items:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchItems();
+  }, [itemName]);
+
+  // Add new item to database
+  const handleAddItem = async (e: React.FormEvent) => {
     e.preventDefault();
-    const formData = new FormData(e.currentTarget);
-    const name = formData.get(`${itemName}-name`) as string;
-    const price = parseFloat(formData.get(`${itemName}-price`) as string);
+    try {
+      const response = await fetch('/api/price-items', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          ...newItem,
+          type: itemName
+        }),
+      });
 
-    const newItem: Item = {
-      id: Date.now().toString(),
-      name,
-      price
-    };
+      const data = await response.json();
 
-    setItems([...items, newItem]);
-    e.currentTarget.reset();
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to add item');
+      }
+
+      setItems([data, ...items]);
+      setNewItem({ name: '', price: '' });
+      toast.success('Item added successfully');
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to add item';
+      toast.error(errorMessage);
+      console.error('Error adding item:', error);
+    }
   };
 
-  const handleEditItem = (itemId: string) => {
-    // TODO: Implement item edit logic
-    console.log('Edit item:', itemId);
+  // Delete item from database
+  const handleDeleteItem = async (id: string) => {
+    try {
+      const response = await fetch(`/api/price-items/${id}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) throw new Error('Failed to delete item');
+
+      setItems(items.filter(item => item._id !== id));
+      toast.success('Item deleted successfully');
+    } catch (error) {
+      toast.error('Failed to delete item');
+      console.error('Error deleting item:', error);
+    }
   };
 
-  const handleDeleteItem = (itemId: string) => {
-    setItems(items.filter(item => item.id !== itemId));
-  };
+  if (loading) {
+    return <div>Loading {title.toLowerCase()}...</div>;
+  }
 
   return (
-    <div className="rounded-lg border bg-card text-card-foreground shadow-sm mb-6">
-      <div className="flex flex-col space-y-1.5 p-6">
-        <h3 className="text-2xl font-semibold leading-none tracking-tight">{title}</h3>
-      </div>
-      <div className="p-6 pt-0">
-        <form onSubmit={handleAddItem} className="space-y-4 mb-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="space-y-2 md:col-span-2">
-              <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70" htmlFor={`${itemName}-name`}>
-                {title} Name
-              </label>
-              <input
-                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                id={`${itemName}-name`}
-                name={`${itemName}-name`}
-                placeholder={`Enter ${itemName} name`}
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70" htmlFor={`${itemName}-price`}>
-                Price (€)
-              </label>
-              <input
-                type="number"
-                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                id={`${itemName}-price`}
-                name={`${itemName}-price`}
-                placeholder="Enter price"
-                min="0"
-                step="0.01"
-                required
-              />
-            </div>
-          </div>
-          <button
-            className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2 w-full md:w-auto"
-            type="submit"
-          >
-            Add {title}
-          </button>
-        </form>
-
-        <div>
-          <h3 className="text-md font-medium mb-4">Existing {title}s</h3>
-          <div className="rounded-md border">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b bg-muted/50">
-                  <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">{title} Name</th>
-                  <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Price (€)</th>
-                  <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {items.map((item) => (
-                  <tr key={item.id} className="border-b">
-                    <td className="p-4 align-middle">{item.name}</td>
-                    <td className="p-4 align-middle">€{item.price.toFixed(2)}</td>
-                    <td className="p-4 align-middle">
-                      <div className="flex items-center gap-2">
-                        <button
-                          onClick={() => handleEditItem(item.id)}
-                          className="inline-flex items-center justify-center text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground rounded-md h-8 w-8 p-0"
-                        >
-                          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
-                            <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"></path>
-                            <path d="m15 5 4 4"></path>
-                          </svg>
-                        </button>
-                        <button
-                          onClick={() => handleDeleteItem(item.id)}
-                          className="inline-flex items-center justify-center text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-destructive text-destructive-foreground hover:bg-destructive/90 rounded-md h-8 w-8 p-0"
-                        >
-                          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
-                            <path d="M3 6h18"></path>
-                            <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
-                            <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
-                            <line x1="10" x2="10" y1="11" y2="17"></line>
-                            <line x1="14" x2="14" y1="11" y2="17"></line>
-                          </svg>
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+    <div className="bg-white shadow rounded-lg p-6 mb-6">
+      <h2 className="text-xl font-semibold mb-4">{title} Management</h2>
+      
+      {/* Add Item Form */}
+      <form onSubmit={handleAddItem} className="mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <input
+            type="text"
+            placeholder={`${title} Name`}
+            value={newItem.name}
+            onChange={(e) => setNewItem({ ...newItem, name: e.target.value })}
+            className="border rounded p-2"
+            required
+          />
+          <input
+            type="number"
+            placeholder="Price"
+            value={newItem.price}
+            onChange={(e) => setNewItem({ ...newItem, price: e.target.value })}
+            className="border rounded p-2"
+            required
+            min="0"
+            step="0.01"
+          />
         </div>
+        <button
+          type="submit"
+          className="mt-4 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+        >
+          Add {title}
+        </button>
+      </form>
+
+      {/* Items List */}
+      <div className="overflow-x-auto">
+        <table className="min-w-full">
+          <thead>
+            <tr className="bg-gray-50">
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+            </tr>
+          </thead>
+          <tbody className="bg-white divide-y divide-gray-200">
+            {items.map((item) => (
+              <tr key={item._id}>
+                <td className="px-6 py-4 whitespace-nowrap">{item.name}</td>
+                <td className="px-6 py-4 whitespace-nowrap">${item.price.toFixed(2)}</td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <button
+                    onClick={() => handleDeleteItem(item._id)}
+                    className="text-red-600 hover:text-red-900"
+                  >
+                    Delete
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
     </div>
   );

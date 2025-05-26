@@ -5,20 +5,20 @@ import { toast } from 'sonner';
 
 interface User {
   _id: string;
-  username: string;
+  email: string;
   role: string;
   createdAt: string;
 }
 
-export default function UserManagement() {
+export default function User() {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [newUser, setNewUser] = useState({
-    username: '',
+    email: '',
     password: ''
   });
 
-  // Fetch users from database
+  // Fetch users
   const fetchUsers = async () => {
     try {
       const response = await fetch('/api/users');
@@ -37,7 +37,7 @@ export default function UserManagement() {
     fetchUsers();
   }, []);
 
-  // Add new user to database
+  // Add new user
   const handleAddUser = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
@@ -49,23 +49,22 @@ export default function UserManagement() {
         body: JSON.stringify(newUser),
       });
 
-      const data = await response.json();
-
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to add user');
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to add user');
       }
 
-      setUsers([data, ...users]);
-      setNewUser({ username: '', password: '' });
+      const addedUser = await response.json();
+      setUsers([addedUser, ...users]);
+      setNewUser({ email: '', password: '' });
       toast.success('User added successfully');
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Failed to add user';
-      toast.error(errorMessage);
+      toast.error(error instanceof Error ? error.message : 'Failed to add user');
       console.error('Error adding user:', error);
     }
   };
 
-  // Delete user from database
+  // Delete user
   const handleDeleteUser = async (id: string) => {
     try {
       const response = await fetch(`/api/users/${id}`, {
@@ -88,20 +87,18 @@ export default function UserManagement() {
 
   return (
     <div className="bg-white shadow rounded-lg p-6 mb-6">
-      <h2 className="text-xl font-semibold mb-4">User Management</h2>
+      <h2 className="text-xl font-semibold mb-4">Users</h2>
       
       {/* Add User Form */}
       <form onSubmit={handleAddUser} className="mb-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <input
-            type="text"
-            placeholder="Username"
-            value={newUser.username}
-            onChange={(e) => setNewUser({ ...newUser, username: e.target.value })}
+            type="email"
+            placeholder="Email"
+            value={newUser.email}
+            onChange={(e) => setNewUser({ ...newUser, email: e.target.value })}
             className="border rounded p-2"
             required
-            pattern="[a-zA-Z0-9_]+"
-            title="Username can only contain letters, numbers, and underscores"
           />
           <input
             type="password"
@@ -126,7 +123,7 @@ export default function UserManagement() {
         <table className="min-w-full">
           <thead>
             <tr className="bg-gray-50">
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Username</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created At</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
@@ -135,7 +132,7 @@ export default function UserManagement() {
           <tbody className="bg-white divide-y divide-gray-200">
             {users.map((user) => (
               <tr key={user._id}>
-                <td className="px-6 py-4 whitespace-nowrap">{user.username}</td>
+                <td className="px-6 py-4 whitespace-nowrap">{user.email}</td>
                 <td className="px-6 py-4 whitespace-nowrap">{user.role}</td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   {new Date(user.createdAt).toLocaleDateString()}

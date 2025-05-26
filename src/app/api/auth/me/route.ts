@@ -1,29 +1,39 @@
 import { NextResponse } from 'next/server';
+import connectDB from '@/lib/mongodb';
+import User from '@/models/User';
 
-// Mock user data - replace with actual database in production
-const MOCK_USERS = [
-  { id: '1', email: 'admin@example.com', password: 'admin123', role: 'admin' },
-  { id: '2', email: 'user@example.com', password: 'user123', role: 'user' }
-];
+// Mock admin user data
+const adminUser = {
+  email: process.env.ADMIN_EMAIL || 'admin@example.com',
+  role: 'admin'
+};
 
 export async function GET(request: Request) {
   try {
-    // In a real application, you would:
-    // 1. Verify session token
-    // 2. Fetch user data from database
-    // 3. Check user permissions
+    // Get the auth token from cookies
+    const authToken = request.cookies.get('auth-token')?.value;
 
-    // For now, we'll just return a mock user
-    // This will be replaced with actual session checking
-    return NextResponse.json({
-      id: '1',
-      email: process.env.ADMIN_USERNAME,
-      role: 'admin'
-    });
+    // Check if it's an admin token
+    if (authToken === 'admin-token') {
+      return NextResponse.json(adminUser);
+    }
+
+    // Handle regular user check
+    await connectDB();
+    const user = await User.findById(authToken).select('-password');
+    
+    if (!user) {
+      return NextResponse.json(
+        { error: 'User not found' },
+        { status: 404 }
+      );
+    }
+
+    return NextResponse.json(user);
   } catch (error) {
-    console.error('Auth check error:', error);
+    console.error('Error checking auth:', error);
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'Failed to check authentication' },
       { status: 500 }
     );
   }

@@ -1,134 +1,147 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { toast } from 'sonner';
 
 interface Material {
-  id: string;
+  _id: string;
   name: string;
   price: number;
 }
 
 export default function Material() {
-  const [materials, setMaterials] = useState<Material[]>([
-    { id: '1', name: 'Demo material name', price: 12.00 }
-  ]);
+  const [materials, setMaterials] = useState<Material[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [newMaterial, setNewMaterial] = useState({
+    name: '',
+    price: 0
+  });
 
-  const handleAddMaterial = (e: React.FormEvent<HTMLFormElement>) => {
+  // Fetch materials
+  const fetchMaterials = async () => {
+    try {
+      const response = await fetch('/api/materials');
+      if (!response.ok) throw new Error('Failed to fetch materials');
+      const data = await response.json();
+      setMaterials(data);
+    } catch (error) {
+      toast.error('Failed to load materials');
+      console.error('Error fetching materials:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchMaterials();
+  }, []);
+
+  // Add new material
+  const handleAddMaterial = async (e: React.FormEvent) => {
     e.preventDefault();
-    const formData = new FormData(e.currentTarget);
-    const name = formData.get('material-name') as string;
-    const price = parseFloat(formData.get('material-price') as string);
+    try {
+      const response = await fetch('/api/materials', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(newMaterial),
+      });
 
-    const newMaterial: Material = {
-      id: Date.now().toString(),
-      name,
-      price
-    };
+      if (!response.ok) throw new Error('Failed to add material');
 
-    setMaterials([...materials, newMaterial]);
-    e.currentTarget.reset();
+      const addedMaterial = await response.json();
+      setMaterials([addedMaterial, ...materials]);
+      setNewMaterial({ name: '', price: 0 });
+      toast.success('Material added successfully');
+    } catch (error) {
+      toast.error('Failed to add material');
+      console.error('Error adding material:', error);
+    }
   };
 
-  const handleEditMaterial = (materialId: string) => {
-    // TODO: Implement material edit logic
-    console.log('Edit material:', materialId);
+  // Delete material
+  const handleDeleteMaterial = async (id: string) => {
+    try {
+      const response = await fetch(`/api/materials/${id}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) throw new Error('Failed to delete material');
+
+      setMaterials(materials.filter(material => material._id !== id));
+      toast.success('Material deleted successfully');
+    } catch (error) {
+      toast.error('Failed to delete material');
+      console.error('Error deleting material:', error);
+    }
   };
 
-  const handleDeleteMaterial = (materialId: string) => {
-    setMaterials(materials.filter(material => material.id !== materialId));
-  };
+  if (loading) {
+    return <div>Loading materials...</div>;
+  }
 
   return (
-    <div className="rounded-lg border bg-card text-card-foreground shadow-sm mb-6">
-      <div className="flex flex-col space-y-1.5 p-6">
-        <h3 className="text-2xl font-semibold leading-none tracking-tight">Material</h3>
-      </div>
-      <div className="p-6 pt-0">
-        <form onSubmit={handleAddMaterial} className="space-y-4 mb-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="space-y-2 md:col-span-2">
-              <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70" htmlFor="material-name">
-                Material Name
-              </label>
-              <input
-                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                id="material-name"
-                name="material-name"
-                placeholder="Enter material name"
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70" htmlFor="material-price">
-                Price (€)
-              </label>
-              <input
-                type="number"
-                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                id="material-price"
-                name="material-price"
-                placeholder="Enter price"
-                min="0"
-                step="0.01"
-                required
-              />
-            </div>
-          </div>
-          <button
-            className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2 w-full md:w-auto"
-            type="submit"
-          >
-            Add Material
-          </button>
-        </form>
-
-        <div>
-          <h3 className="text-md font-medium mb-4">Existing Materials</h3>
-          <div className="rounded-md border">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b bg-muted/50">
-                  <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Material Name</th>
-                  <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Price (€)</th>
-                  <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {materials.map((material) => (
-                  <tr key={material.id} className="border-b">
-                    <td className="p-4 align-middle">{material.name}</td>
-                    <td className="p-4 align-middle">€{material.price.toFixed(2)}</td>
-                    <td className="p-4 align-middle">
-                      <div className="flex items-center gap-2">
-                        <button
-                          onClick={() => handleEditMaterial(material.id)}
-                          className="inline-flex items-center justify-center text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground rounded-md h-8 w-8 p-0"
-                        >
-                          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
-                            <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"></path>
-                            <path d="m15 5 4 4"></path>
-                          </svg>
-                        </button>
-                        <button
-                          onClick={() => handleDeleteMaterial(material.id)}
-                          className="inline-flex items-center justify-center text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-destructive text-destructive-foreground hover:bg-destructive/90 rounded-md h-8 w-8 p-0"
-                        >
-                          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
-                            <path d="M3 6h18"></path>
-                            <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
-                            <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
-                            <line x1="10" x2="10" y1="11" y2="17"></line>
-                            <line x1="14" x2="14" y1="11" y2="17"></line>
-                          </svg>
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+    <div className="bg-white shadow rounded-lg p-6 mb-6">
+      <h2 className="text-xl font-semibold mb-4">Materials</h2>
+      
+      {/* Add Material Form */}
+      <form onSubmit={handleAddMaterial} className="mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <input
+            type="text"
+            placeholder="Material Name"
+            value={newMaterial.name}
+            onChange={(e) => setNewMaterial({ ...newMaterial, name: e.target.value })}
+            className="border rounded p-2"
+            required
+          />
+          <input
+            type="number"
+            placeholder="Price"
+            value={newMaterial.price}
+            onChange={(e) => setNewMaterial({ ...newMaterial, price: Number(e.target.value) })}
+            className="border rounded p-2"
+            required
+            min="0"
+            step="0.01"
+          />
         </div>
+        <button
+          type="submit"
+          className="mt-4 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+        >
+          Add Material
+        </button>
+      </form>
+
+      {/* Materials List */}
+      <div className="overflow-x-auto">
+        <table className="min-w-full">
+          <thead>
+            <tr className="bg-gray-50">
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+            </tr>
+          </thead>
+          <tbody className="bg-white divide-y divide-gray-200">
+            {materials.map((material) => (
+              <tr key={material._id}>
+                <td className="px-6 py-4 whitespace-nowrap">{material.name}</td>
+                <td className="px-6 py-4 whitespace-nowrap">€{material.price.toFixed(2)}</td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <button
+                    onClick={() => handleDeleteMaterial(material._id)}
+                    className="text-red-600 hover:text-red-900"
+                  >
+                    Delete
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
     </div>
   );

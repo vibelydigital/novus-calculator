@@ -1,40 +1,75 @@
 import { NextResponse } from 'next/server';
+import { cookies } from 'next/headers';
+import connectDB from '@/lib/mongodb';
+import User from '@/models/User';
+import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
 
 export async function POST(request: Request) {
   try {
+    await connectDB();
     const body = await request.json();
-    const { email, password } = body;
+    const { username, password } = body;
 
-    // Check if it's an admin login using environment variables
-    if (email === process.env.ADMIN_USERNAME && password === process.env.ADMIN_PASSWORD) {
-      // Create the response
-      const response = NextResponse.json({
-        id: '1',
-        email: process.env.ADMIN_USERNAME,
-        role: 'admin'
-      });
-
-      // Set the auth token cookie
-      response.cookies.set('auth-token', 'admin-token', {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'strict',
-        maxAge: 60 * 60 * 24 // 24 hours
-      });
-
-      return response;
+    if (!username || !password) {
+      return NextResponse.json(
+        { error: 'Username and password are required' },
+        { status: 400 }
+      );
     }
 
-    // If credentials don't match admin, return error
-    return NextResponse.json(
-      { error: 'Invalid credentials' },
-      { status: 401 }
+    // Check if user exists
+    const user = await User.findOne({ username });
+    if (!user) {
+      return NextResponse.json(
+        { error: 'Invalid username or password' },
+        { status: 401 }
+      );
+    }
+
+    // Verify password
+    const isValidPassword = await bcrypt.compare(password, user.password);
+    if (!isValidPassword) {
+      return NextResponse.json(
+        { error: 'Invalid username or password' },
+        { status: 401 }
+      );
+    }
+
+    // Create JWT token
+    const token = jwt.sign(
+      { 
+        userId: user._id,
+        username: user.username,
+        role: user.role 
+      },
+      process.env.JWT_SECRET || 'your-secret-key',
+      { expiresIn: '1d' }
     );
+
+    // Create response with user data
+    const response = NextResponse.json({
+      user: {
+        _id: user._id,
+        username: user.username,
+        role: user.role
+      }
+    });
+
+    // Set cookie in response
+    response.cookies.set('token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 60 * 60 * 24 // 1 day
+    });
+
+    return response;
   } catch (error) {
     console.error('Login error:', error);
     return NextResponse.json(
-      { error: 'Invalid credentials' },
-      { status: 401 }
+      { error: 'Failed to login' },
+      { status: 500 }
     );
   }
 } 

@@ -1,10 +1,13 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import CalculatorForm, { CalculatorFormData } from '@/components/calculator/CalculatorForm';
 import CalculationResults from '@/components/calculator/CalculationResults';
+import CalculatorHeader from '@/components/calculator/CalculatorHeader';
 
 export default function CalculatorPage() {
+  const router = useRouter();
   const [formData, setFormData] = useState<CalculatorFormData>({
     printingChannel: '',
     width: 0,
@@ -30,9 +33,16 @@ export default function CalculatorPage() {
     setTotalPrice(basePrice * data.quantity * quantityMultiplier);
   };
 
+  const handleLogout = () => {
+    // Clear any stored data
+    localStorage.removeItem('savedCalculations');
+    // Redirect to login page
+    router.push('/login');
+  };
+
   return (
     <div className="container mx-auto px-4 py-8">
-      <h1 className="text-2xl md:text-3xl font-bold mb-8">Price Calculator</h1>
+      <CalculatorHeader onLogout={handleLogout} />
       
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <CalculatorForm onCalculate={handleCalculate} />

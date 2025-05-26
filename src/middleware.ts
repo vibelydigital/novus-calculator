@@ -6,15 +6,17 @@ export function middleware(request: NextRequest) {
   const path = request.nextUrl.pathname;
 
   // Define public paths that don't require authentication
-  const isPublicPath = path === '/login';
+  const isPublicPath = path === '/login' || path === '/';
 
   // Get the token from the cookies
-  const token = request.cookies.get('auth-token')?.value || '';
+  const token = request.cookies.get('token')?.value || '';
 
   // Redirect logic
   if (isPublicPath && token) {
     // If user is logged in and tries to access login page, redirect to admin
-    return NextResponse.redirect(new URL('/admin', request.url));
+    if (path === '/login') {
+      return NextResponse.redirect(new URL('/admin', request.url));
+    }
   }
 
   if (!isPublicPath && !token) {
@@ -25,5 +27,5 @@ export function middleware(request: NextRequest) {
 
 // Configure which paths the middleware should run on
 export const config = {
-  matcher: ['/admin/:path*', '/login']
+  matcher: ['/admin/:path*', '/login', '/']
 }; 

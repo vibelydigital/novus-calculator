@@ -3,8 +3,8 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
 interface User {
-  id: string;
-  email: string;
+  _id?: string;
+  username: string;
   role: 'admin' | 'user';
 }
 
@@ -29,8 +29,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const response = await fetch('/api/auth/me');
       if (response.ok) {
-        const userData = await response.json();
-        setUser(userData);
+        const data = await response.json();
+        setUser(data.user);
       }
     } catch (error) {
       console.error('Auth check failed:', error);

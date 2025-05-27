@@ -1,13 +1,15 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { useAuth } from '@/context/AuthContext';
 import CalculatorForm, { CalculatorFormData } from '@/components/calculator/CalculatorForm';
 import CalculationResults from '@/components/calculator/CalculationResults';
 import CalculatorHeader from '@/components/calculator/CalculatorHeader';
 
 export default function CalculatorPage() {
   const router = useRouter();
+  const { user, loading } = useAuth();
   const [formData, setFormData] = useState<CalculatorFormData>({
     printingChannel: '',
     width: 0,
@@ -21,6 +23,12 @@ export default function CalculatorPage() {
   });
 
   const [totalPrice, setTotalPrice] = useState(0);
+
+  useEffect(() => {
+    if (!loading && (!user || (user.role !== 'user' && user.role !== 'admin'))) {
+      router.push('/login');
+    }
+  }, [user, loading, router]);
 
   const handleCalculate = (data: CalculatorFormData) => {
     setFormData(data);
@@ -39,6 +47,18 @@ export default function CalculatorPage() {
     // Redirect to login page
     router.push('/login');
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-xl">Loading...</div>
+      </div>
+    );
+  }
+
+  if (!user || (user.role !== 'user' && user.role !== 'admin')) {
+    return null;
+  }
 
   return (
     <div className="container mx-auto px-4 py-8">

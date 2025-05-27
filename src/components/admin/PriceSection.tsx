@@ -27,13 +27,18 @@ export default function PriceSection({ title, itemName }: PriceSectionProps) {
   // Fetch items from database
   const fetchItems = async () => {
     try {
+      console.log('Fetching items for type:', itemName);
       const response = await fetch(`/api/price-items?type=${itemName}`);
-      if (!response.ok) throw new Error('Failed to fetch items');
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to fetch items');
+      }
       const data = await response.json();
+      console.log('Fetched items:', data);
       setItems(data);
     } catch (error) {
-      toast.error('Failed to load items');
       console.error('Error fetching items:', error);
+      toast.error(error instanceof Error ? error.message : 'Failed to load items');
     } finally {
       setLoading(false);
     }
@@ -47,6 +52,7 @@ export default function PriceSection({ title, itemName }: PriceSectionProps) {
   const handleAddItem = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
+      console.log('Adding new item:', { ...newItem, type: itemName });
       const response = await fetch('/api/price-items', {
         method: 'POST',
         headers: {
@@ -59,6 +65,7 @@ export default function PriceSection({ title, itemName }: PriceSectionProps) {
       });
 
       const data = await response.json();
+      console.log('Add item response:', data);
 
       if (!response.ok) {
         throw new Error(data.error || 'Failed to add item');
@@ -68,26 +75,30 @@ export default function PriceSection({ title, itemName }: PriceSectionProps) {
       setNewItem({ name: '', price: '' });
       toast.success('Item added successfully');
     } catch (error) {
+      console.error('Error adding item:', error);
       const errorMessage = error instanceof Error ? error.message : 'Failed to add item';
       toast.error(errorMessage);
-      console.error('Error adding item:', error);
     }
   };
 
   // Delete item from database
   const handleDeleteItem = async (id: string) => {
     try {
+      console.log('Deleting item:', id);
       const response = await fetch(`/api/price-items/${id}`, {
         method: 'DELETE',
       });
 
-      if (!response.ok) throw new Error('Failed to delete item');
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to delete item');
+      }
 
       setItems(items.filter(item => item._id !== id));
       toast.success('Item deleted successfully');
     } catch (error) {
-      toast.error('Failed to delete item');
       console.error('Error deleting item:', error);
+      toast.error(error instanceof Error ? error.message : 'Failed to delete item');
     }
   };
 

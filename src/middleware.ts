@@ -2,30 +2,40 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
 export function middleware(request: NextRequest) {
-  // Get the pathname of the request
-  const path = request.nextUrl.pathname;
+  const token = request.cookies.get('token')?.value;
+  const { pathname } = request.nextUrl;
 
-  // Define public paths that don't require authentication
-  const isPublicPath = path === '/login' || path === '/';
+  // Public paths that don't require authentication
+  const publicPaths = ['/login', '/api/login'];
+  if (publicPaths.includes(pathname)) {
+    return NextResponse.next();
+  }
 
-  // Get the token from the cookies
-  const token = request.cookies.get('token')?.value || '';
+  // Check if user is authenticated
+  if (!token) {
+    const url = new URL('/login', request.url);
+    url.searchParams.set('from', pathname);
+    return NextResponse.redirect(url);
+  }
 
-  // Redirect logic
-  if (isPublicPath && token) {
-    // If user is logged in and tries to access login page, redirect to admin
-    if (path === '/login') {
-      return NextResponse.redirect(new URL('/admin', request.url));
+  // For calculator page, check user role
+  if (pathname === '/calculator') {
+    // Get user role from token
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      if (payload.role !== 'user' && payload.role !== 'admin') {
+        return NextResponse.redirect(new URL('/login', request.url));
+      }
+    } catch (error) {
+      // If token is invalid, redirect to login
+      return NextResponse.redirect(new URL('/login', request.url));
     }
   }
 
-  if (!isPublicPath && !token) {
-    // If user is not logged in and tries to access protected page, redirect to login
-    return NextResponse.redirect(new URL('/login', request.url));
-  }
+  return NextResponse.next();
 }
 
 // Configure which paths the middleware should run on
 export const config = {
-  matcher: ['/admin/:path*', '/login', '/']
+  matcher: ['/calculator/:path*', '/admin/:path*', '/login'],
 }; 

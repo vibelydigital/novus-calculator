@@ -12,7 +12,7 @@ const priceItemSchema = new mongoose.Schema({
   type: {
     type: String,
     required: true,
-    enum: ['print', 'lamination', 'finishing', 'packing', 'installation']
+    enum: ['materials', 'print', 'lamination', 'finishing', 'packing', 'installation']
   }
 }, {
   timestamps: true

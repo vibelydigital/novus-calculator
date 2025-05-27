@@ -39,6 +39,7 @@ export default function AdminPage() {
 
       {/* Material */}
       <Material />
+      {/* <PriceSection title="Materials" itemName="materials" /> */}
 
       {/* Print */}
       <PriceSection title="Print" itemName="print" />

@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import User from '@/models/User';
-import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 
 // Get admin credentials directly from process.env
@@ -87,20 +86,23 @@ export async function POST(request: Request) {
     await connectDB();
     const user = await User.findOne({ username });
     if (!user) {
+      console.log('User not found:', username);
       return NextResponse.json(
         { error: 'Invalid username or password' },
         { status: 401 }
       );
     }
 
-    // Verify password
-    const isValidPassword = await bcrypt.compare(password, user.password);
-    if (!isValidPassword) {
+    // Compare passwords directly since we're storing them in plain text
+    if (password !== user.password) {
+      console.log('Invalid password for user:', username);
       return NextResponse.json(
         { error: 'Invalid username or password' },
         { status: 401 }
       );
     }
+
+    console.log('User login successful:', username);
 
     // Create JWT token for regular user
     const token = jwt.sign(
